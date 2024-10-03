@@ -1,13 +1,13 @@
-import torch
+import torch, math
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms, models
-from torch.utils.data import DataLoader
-from torchsummary import summary
-import gc
-import matplotlib.pyplot as plt
-import math
+## from torchvision import datasets, transforms, models
+from torchvision import models
+## from torch.utils.data import DataLoader
+## from torchsummary import summary
+## import gc
+## import matplotlib.pyplot as plt
 
 
 class KANLinear(nn.Module):
@@ -197,59 +197,3 @@ class KANLinear(nn.Module):
                 regularize_activation * regularization_loss_activation
                 + regularize_entropy * regularization_loss_entropy
         )
-
-
-class ConvNeXtKAN(nn.Module):
-    def __init__(self, params=None):
-        super(ConvNeXtKAN, self).__init__()
-        # Load pre-trained ConvNeXt model
-        self.convnext = models.convnext_tiny(pretrained=True)
-
-        # Freeze ConvNeXt layers (if required)
-        for param in self.convnext.parameters():
-            param.requires_grad = False
-
-        # Modify the classifier part of ConvNeXt
-        num_features = self.convnext.classifier[2].in_features
-        self.convnext.classifier = nn.Identity()
-
-        if params is None:
-            self.kan1 = KANLinear(num_features, 256)
-            self.kan2 = KANLinear(256, 4)
-
-        else:
-            self.kan1 = KANLinear(num_features, 256,
-                                  grid_size=params['grid_size'],
-                                  spline_order=params['spline_order'],
-                                  scale_noise=params['scale_noise'],
-                                  scale_base=params['scale_base'],
-                                          scale_spline=params['scale_spline']
-                                  )
-            self.kan2 = KANLinear(256, 4,
-                                  grid_size=params['grid_size'],
-                                  spline_order=params['spline_order'],
-                                  scale_noise=params['scale_noise'],
-                                  scale_base=params['scale_base'],
-                                  scale_spline=params['scale_spline']
-                                  )
-
-    def forward(self, x):
-        x = self.convnext(x)
-        x = x.view(x.size(0), -1)  # Flatten the tensor
-        x = self.kan1(x)
-        x = self.kan2(x)
-        return x
-
-
-def print_parameter_details(model):
-    total_params = 0
-    for name, parameter in model.named_parameters():
-        if parameter.requires_grad:
-            params = parameter.numel()  # Number of elements in the tensor
-            total_params += params
-            print(f"{name}: {params}")
-    print(f"Total trainable parameters: {total_params}")
-
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-

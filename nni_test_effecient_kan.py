@@ -1,35 +1,31 @@
-import os
-import random
-from tqdm import tqdm
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import cv2
-import random
-from IPython.display import Image
-import imutils
+## import os
+## import random
+## from tqdm import tqdm
+## import pandas as pd
+## import matplotlib.pyplot as plt
+## import seaborn as sns
+## import cv2
+## import random
+## from IPython.display import Image
+## import imutils
 
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+## from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-import numpy as np
-
-import torch.optim as optim
-
-import torch
-import torch.nn as nn
-import torchvision
-
-from common import get_data_from_json
-from kcn import ConvNeXtKAN
-from common_testing import prepare_dataset
+import torch, nni
 import common_testing
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
 
 from efficientnet_kan import EfficientNetB1_KAN
-import numpy as np
-import nni
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-
+## from torch.optim.lr_scheduler import ReduceLROnPlateau
 from nni.experiment import Experiment
+## import torchvision
+
+## from common import get_data_from_json
+## from kcn import ConvNeXtKAN
+from common_testing import prepare_dataset, update_json_with_key, train, validation, testing, Timer
+
 
 experiment = Experiment('local')
 
@@ -48,20 +44,17 @@ def main():
     model = model.to('cuda')
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # Define the scheduler
-    scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.3, patience=2, verbose=True)
+    ## # Define the scheduler
+    ## scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.3, patience=2, verbose=True)
 
-    # Initialize early stopping
-    from common_testing import EarlyStopping
+    ## # Initialize early stopping
+    ## from common_testing import EarlyStopping
 
     criterion = nn.CrossEntropyLoss()
 
-    from common_testing import train, validation, testing
     accuracy, loss = (None, None)
 
     accuracy_validation, loss_validation = ([], [])
-
-    from common_testing import Timer
 
     time_per_epoch = Timer()
     time_trainings = []
@@ -120,7 +113,6 @@ def main():
         "loss_testing": loss_testing,
     }
 
-    from common import update_json_with_key
 
     update_json_with_key("data.json", tb_json)
 
