@@ -1,27 +1,7 @@
-## import os
-## import random
-## from tqdm import tqdm
-## import pandas as pd
-## import matplotlib.pyplot as plt
-## import seaborn as sns
-## import cv2
-## import random
-## from IPython.display import Image
-## import imutils
+import torch, torchvision, sys
 
-## from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-## import numpy as np
-
-## import torch.optim as optim
-
-import torch, torchvision
+sys.path.append('..')
 import common_testing
-## import torch.nn as nn
-## import torchvision
-
-## from common import get_data_from_json
-## from kcn import ConvNeXtKAN
 
 from common_testing import test_model
 
@@ -39,4 +19,4 @@ if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # torch.cuda.set_device(0)
-    test_model(model, "EfficientNet_pretrained", num_epochs=30, progress_bar=False)
+    test_model(model, "EfficientNet_pretrained_try", num_epochs=1, progress_bar=False)

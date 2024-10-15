@@ -1,30 +1,9 @@
-## import os
-## import random
-## from tqdm import tqdm
-## import pandas as pd
-## import matplotlib.pyplot as plt
-## import seaborn as sns
-## import cv2
-## import random
-## from IPython.display import Image
-## import imutils
+import torch, sys
 
-## from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-## import numpy as np
-
-## import torch.optim as optim
-
-import torch
+sys.path.append('..')
 import common_testing
-
-## import torch.nn as nn
-## import torchvision
-
-## from common import get_data_from_json
-## from kcn import ConvNeXtKAN
 from common_testing import test_model
-from efficientnet_kan import EfficientNetB1_KAN
+from models.efficientnet_kan import EfficientNetB1_KAN
 
 NAME_JSON_FILE = 'data.json'
 
@@ -44,8 +23,9 @@ if __name__ == '__main__':
         'scale_spline': 0.99
     }
     model = EfficientNetB1_KAN(4, params)
-    test_model(model, f"Effective_b1_KAN_5epoch_7", num_epochs=30, progress_bar=False)
+    test_model(model, f"Effective_b1_KAN_5epoch_7grid", num_epochs=5, progress_bar=False)
 
+    exit()
     params = {
         'grid_size': 64,
         'spline_order': 3,

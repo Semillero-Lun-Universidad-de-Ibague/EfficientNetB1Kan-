@@ -1,3 +1,5 @@
+## does not work!!!
+
 ## import os
 ## import random
 ## from tqdm import tqdm
@@ -19,9 +21,13 @@
 ## import torch.nn as nn
 ## import torchvision
 
+import sys
 ## from common import get_data_from_json
+
+sys.path.append('..')
 import common_testing
 
+# ConvNeXtKAN does not exist in kcn?
 from kcn import ConvNeXtKAN
 from common_testing import test_model
 
