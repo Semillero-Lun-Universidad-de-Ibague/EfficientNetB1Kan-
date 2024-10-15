@@ -16,7 +16,6 @@ def calculate_learning_slope(accuracies: List[float]) -> float:
 
 
 def sort_models_by_learning_speed(models: List[Dict]) -> List[Dict]:
-    # Výpočet směrnice pro každý model a vytvoření seznamu dvojic (model, směrnice)
     # Calculate the derivative for each model and create a list of pairs (model, derivative)
     model_slopes = []
     for model in models:
@@ -26,22 +25,18 @@ def sort_models_by_learning_speed(models: List[Dict]) -> List[Dict]:
         slope = calculate_learning_slope(model['accuracy_validation'])
         model_slopes.append((model, slope))
 
-    # Seřazení seznamu podle směrnice (sestupně)
     # Ordering of the list by derivate (in descending order)
     sorted_models = sorted(model_slopes, key=lambda x: x[1], reverse=True)
 
-    # Vrácení pouze seřazených modelů (bez směrnic)
     # Return of sorted models only (without guidelines)
     return [model for model, _ in sorted_models]
 
 
-# Použití funkcí
 # Using functions
 file_path = 'dalsi.json'  # Replace with the actual path to your file
 models = load_models(file_path)
 sorted_models = sort_models_by_learning_speed(models)
 
-# Výpis seřazených modelů
 # List of sorted models
 for i, model in enumerate(sorted_models, 1):
     slope = calculate_learning_slope(model['accuracy_validation'])
