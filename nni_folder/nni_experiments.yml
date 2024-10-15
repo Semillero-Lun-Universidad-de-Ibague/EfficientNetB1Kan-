@@ -1,0 +1,68 @@
+experimentName: nni
+trialConcurrency: 1  # Número de experimentos que se ejecutarán en paralelo
+maxExperimentDuration: 24h  # Tiempo máximo de duración del experimento
+maxTrialNumber: 10  # Número máximo de pruebas
+logLevel: debug
+
+nniManagerIp: 127.0.0.1  # Dirección IP de tu máquina local accesible desde las máquinas remotas
+trialCodeDirectory: "."
+
+trainingService:
+  platform: remote
+  machineList:
+
+    # - host: 172.17.100.6
+    #   port: 22
+    #   user: semillerolun
+    #   password: Semillerolun123
+    #   pythonPath: /home/semillerolun/kan/environment
+    #   maxTrialNumberPerGpu: 1 
+    #   useActiveGpu: True
+
+    # - host: 172.17.100.35
+    #   port: 22
+    #   user: semillerolun
+    #   password: 2UA7362GNP
+    #   pythonPath: /home/semillerolun/anaconda3/envs/env_jose/bin 
+
+    - host: 172.17.100.15
+      port: 22
+      user: semillerolun
+      password: Semillerolun123
+      pythonPath: /home/semillerolun/miniconda3/envs/kan/bin
+      gpuIndices: "0"
+      maxTrialNumberPerGpu: 1 
+      useActiveGpu: True
+# 
+    # - host: 172.17.100.15
+    #   port: 22
+    #   user: semillerolun
+    #   password: Semillerolun123
+    #   pythonPath: /home/semillerolun/miniconda3/envs/env_jose/bin
+    #   gpuIndices: "1"
+    #   maxTrialNumberPerGpu: 1 
+    #   useActiveGpu: True
+
+tuner:
+  name: TPE  # Tipo de tuner que deseas usar
+  classArgs:
+    optimize_mode: maximize  # Maximizar la métrica objetivo
+
+searchSpace:
+  grid_size:
+    _type: choice
+    _value: [8, 16, 32, 64]
+  spline_order:
+    _type: choice
+    _value: [2, 3, 4]
+  scale_noise:
+    _type: uniform
+    _value: [0.3, 0.99]
+  scale_base:
+    _type: uniform
+    _value: [0.5, 0.99]
+  scale_spline:
+    _type: uniform
+    _value: [0.5, 0.99]
+
+trialCommand: python3 laura_test_models_kan.py resnext_kan # Comando para ejecutar el script de entrenamiento
