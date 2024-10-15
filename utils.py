@@ -1,8 +1,7 @@
-import torch, json
+import torch, json, time
 import numpy as np
 import torch.optim as optim
 
-from utils import get_data_from_json, load_checkpoint
 from models.ConvNeXt_KAN import ConvNeXtKAN
 
 

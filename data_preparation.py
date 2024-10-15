@@ -3,13 +3,10 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 
 
-def prepare_dataset(batch_size):
+def prepare_dataset(batch_size, path):
 
-    # `cwd`: current directory is straightforward
-    cwd = Path.cwd()
-
-    train_dir = str(cwd) + "/data/Training"
-    test_dir = str(cwd) + "/data/Testing"
+    train_dir = path + "/data/Training"
+    test_dir = path + "/data/Testing"
 
     sizeof_picture = 240
 
@@ -33,9 +30,6 @@ def prepare_dataset(batch_size):
     ])
 
     # Load datasets
-    # global train_dataset
-    # global valid_dataset
-    # global test_dataset
     train_dataset = datasets.ImageFolder(root=train_dir, transform=train_transform)
     test_dataset = datasets.ImageFolder(root=test_dir, transform=test_transform)
 
@@ -49,12 +43,9 @@ def prepare_dataset(batch_size):
 
     print(f"batch size: {batch_size}")
     # Create DataLoader
-    # global train_loader
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    # global valid_loader
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
-    # global test_loader
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     "train: ", len(train_dataset), "Valid: ", len(valid_dataset), "test: ", len(test_dataset)
 
-    return train_loader, valid_loader, test_loader
+    return (train_dataset, valid_dataset, test_dataset), (train_loader, valid_loader, test_loader)

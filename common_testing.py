@@ -1,22 +1,16 @@
-## import torch, torchvision, os, random, cv2, imutils, time
 import torch, time
-## import pandas as pd
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
-## import seaborn as sns
 
-## from IPython.display import Image
 from tqdm import tqdm
-## from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from torchsummary import summary
 from torchvision.transforms import functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from common import update_json_with_key
 from data_preparation import prepare_dataset
-from utils import EarlyStopping
+from utils import EarlyStopping, update_json_with_key, Timer
 
 NAME_JSON_FILE = 'data.json'
 
@@ -34,16 +28,14 @@ def print_model_summary(model, input_size=(3, 128, 128)):
     model.train()
     summary(model, input_size=input_size)
 
-train_loader = None
-valid_loader = None
-test_loader = None
-train_dataset = None
-valid_dataset = None
-test_dataset = None
 
 def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
-    prepare_dataset(batch_size=batch_size)
+    # prepare_dataset(batch_size, '~/kan/')
+    datasets, loaders = prepare_dataset(batch_size, '~/kan/')
+
+    train_dataset, valid_dataset, test_dataset = datasets[0], datasets[1], datasets[2]
+    train_loader, valid_loader, test_loader = loaders[0], loaders[1], loaders[2]
 
     model = model.to(device)
 
@@ -69,9 +61,6 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
     loss_validation = []
     loss_training = []
 
-    ## test_validation = []
-    ## test_training = []
-
     test_loss = []
     test_accuracy = []
 
@@ -84,8 +73,8 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
         time_training.start()
 
-        # train'
-        epoch_acc, epoch_loss = train(criterion, epoch, model, num_epochs, optimizer, progress_bar)
+        # train
+        epoch_acc, epoch_loss = train(criterion, epoch, model, num_epochs, optimizer, train_loader, train_dataset, progress_bar)
         time_training.end()
         accuracy_training.append(epoch_acc)
         loss_training.append(epoch_loss)
@@ -93,7 +82,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
         time_trainings.append(time_training.elapsed_time)
 
         # Validation
-        val_acc, val_loss = validation(criterion, model, progress_bar)
+        val_acc, val_loss = validation(criterion, model, valid_loader, valid_dataset, progress_bar)
 
         loss_validation.append(val_loss)
         accuracy_validation.append(val_acc)
@@ -101,7 +90,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
         # Step the scheduler
         scheduler.step(val_acc)
 
-        a_t, l_t = testing(criterion, model)
+        a_t, l_t = testing(criterion, model, test_loader, test_dataset)
 
         test_loss.append(l_t)
         test_accuracy.append(a_t)
@@ -138,7 +127,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
     return accuracy_validation, loss_validation, time_trainings, test_accuracy[-1], test_loss[-1]
 
 
-def testing(criterion, model):
+def testing(criterion, model, test_loader, test_dataset):
     model.eval()
     val_loss = 0.0
     val_correct = 0
@@ -168,7 +157,7 @@ def testing(criterion, model):
     return accuracy_testing, loss_testing
 
 
-def validation(criterion, model, progress_bar=True):
+def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True):
     model.eval()
     val_loss = 0.0
     val_correct = 0
@@ -198,7 +187,7 @@ def validation(criterion, model, progress_bar=True):
     return val_acc, val_loss
 
 
-def train(criterion, epoch, model, num_epochs, optimizer, progress_bar=True):
+def train(criterion, epoch, model, num_epochs, optimizer, train_loader, train_dataset, progress_bar=True):
     model.train()
     running_loss = 0.0
     correct = 0
