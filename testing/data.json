@@ -156,5 +156,109 @@
         ],
         "num_epochs": 1,
         "model_name": "EfficientNet_pretrained_try"
+    },
+    {
+        "accuracy_training": [
+            0.44873271889400923
+        ],
+        "accuracy_validation": [
+            0.5564516129032258
+        ],
+        "loss_training": [
+            1.4649811295732376
+        ],
+        "loss_validation": [
+            0.9766919007224422
+        ],
+        "time_trainings": [
+            87092.20719337463
+        ],
+        "total_time": 118547.75285720825,
+        "accuracy_testing": [
+            0.4281352235550709
+        ],
+        "loss_testing": [
+            1.448136947594071
+        ],
+        "num_epochs": 1,
+        "model_name": "VGG16_KAN_10epochs_2024-10-15"
+    },
+    {
+        "accuracy_training": [
+            0.4021889400921659
+        ],
+        "accuracy_validation": [
+            0.534331797235023
+        ],
+        "loss_training": [
+            4.629258803542583
+        ],
+        "loss_validation": [
+            1.0492953062057495
+        ],
+        "time_trainings": [
+            81725.79050064087
+        ],
+        "total_time": 112528.4423828125,
+        "accuracy_testing": [
+            0.4835332606324973
+        ],
+        "loss_testing": [
+            1.1786911409092313
+        ],
+        "num_epochs": 1,
+        "model_name": "VGG16_10epochs_2024-10-15"
+    },
+    {
+        "accuracy_training": [
+            0.8964861751152073
+        ],
+        "accuracy_validation": [
+            0.9578341013824885
+        ],
+        "loss_training": [
+            0.2903462266249041
+        ],
+        "loss_validation": [
+            0.13563909633986412
+        ],
+        "time_trainings": [
+            79006.41775131226
+        ],
+        "total_time": 106932.53421783447,
+        "accuracy_testing": [
+            0.9044711014176663
+        ],
+        "loss_testing": [
+            0.28939909050338863
+        ],
+        "num_epochs": 1,
+        "model_name": "ResNext_KAN_10epochs_2024-10-15"
+    },
+    {
+        "accuracy_training": [
+            0.9075460829493087
+        ],
+        "accuracy_validation": [
+            0.9202764976958525
+        ],
+        "loss_training": [
+            0.4312602682940422
+        ],
+        "loss_validation": [
+            0.2683543983486391
+        ],
+        "time_trainings": [
+            78870.80645561218
+        ],
+        "total_time": 107359.14397239685,
+        "accuracy_testing": [
+            0.8532170119956379
+        ],
+        "loss_testing": [
+            0.43859625750893144
+        ],
+        "num_epochs": 1,
+        "model_name": "ResNext_10epochs_2024-10-15"
     }
 ]
