@@ -3,6 +3,7 @@ import numpy as np
 import torch.optim as optim
 
 from models.ConvNeXt_KAN import ConvNeXtKAN
+from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 
 
 # --------
@@ -138,6 +139,14 @@ def load_model_poc():
             accuracy_testing, accuracy_training, loss_training, loss_validation, model_name, num_epochs
         ))
 
+
+def load_model_from_state(state_dict_path: str, model_type: str):
+
+    if model_type == 'vgg':
+        model = vgg16(pretrained=True)
+    model_state = model.load_state_dict(torch.load(state_dict_path, map_location='cpu'))
+
+    return model_state
 
 # ----------------
 # JSON OPERATIONS

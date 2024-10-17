@@ -2,6 +2,7 @@ import json
 import numpy as np
 from scipy import stats
 from typing import List, Dict
+from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 
 
 def load_models(file_path: str) -> List[Dict]:

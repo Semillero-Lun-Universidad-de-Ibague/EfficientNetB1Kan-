@@ -10,9 +10,11 @@ from torchvision.transforms import functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from data_preparation import prepare_dataset
-from utils import EarlyStopping, update_json_with_key, Timer
+from utils import EarlyStopping, update_json_with_key, Timer, save_checkpoint  
+from evaluation.significance_testing import test_statistical_significance
 
 NAME_JSON_FILE = 'data.json'
+NAME_PRED_FILE = 'preds.json'
 
 MODEL_SAVING_POSTFIX = "_checkpoint.pth"
 
@@ -63,6 +65,8 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
     test_loss = []
     test_accuracy = []
+    predictions = []
+    labels = []
 
     time_trainings = []
     time_training = Timer()
@@ -90,7 +94,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
         # Step the scheduler
         scheduler.step(val_acc)
 
-        a_t, l_t = testing(criterion, model, test_loader, test_dataset)
+        a_t, l_t, preds, targets = testing(criterion, model, test_loader, test_dataset)
 
         test_loss.append(l_t)
         test_accuracy.append(a_t)
@@ -101,7 +105,6 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
             break
 
     total_time.end()
-
 
     tb_json = {
         "accuracy_training": accuracy_training,
@@ -122,7 +125,17 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
     }
 
+    preds_json = {
+        "preds": [el.item() for el in preds], 
+        "labels": [el.item() for el in targets],
+        "model_name": model_name
+        }
+
     update_json_with_key(NAME_JSON_FILE, tb_json)
+    update_json_with_key(NAME_PRED_FILE, preds_json)
+
+    # save_checkpoint(model, optimizer, '/home/semillerolun/kan/EfficientNetB1Kan-/models/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX, num_epochs)
+    torch.save(model.state_dict(), '/home/semillerolun/kan/EfficientNetB1Kan-/models/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX)
 
     return accuracy_validation, loss_validation, time_trainings, test_accuracy[-1], test_loss[-1]
 
@@ -132,6 +145,7 @@ def testing(criterion, model, test_loader, test_dataset):
     val_loss = 0.0
     val_correct = 0
     val_total = 0
+    preds, targets = [], []
     with tqdm(total=len(test_loader), desc='Testing', unit='batch') as pbar:
         with torch.no_grad():
             for inputs, labels in test_loader:
@@ -146,7 +160,8 @@ def testing(criterion, model, test_loader, test_dataset):
                 _, predicted = torch.max(outputs, 1)
                 val_total += labels.size(0)
                 val_correct += (predicted == labels).sum().item()
-
+                preds.extend(predicted)
+                targets.extend(labels)
                 # Update progress bar
                 pbar.set_postfix(val_loss=val_loss / (val_total + 1e-8), val_accuracy=val_correct / val_total)
                 pbar.update()
@@ -154,7 +169,7 @@ def testing(criterion, model, test_loader, test_dataset):
     # return avg loss and accuracy
     accuracy_testing = val_correct / val_total
     loss_testing = val_loss / len(test_dataset)
-    return accuracy_testing, loss_testing
+    return accuracy_testing, loss_testing, preds, targets       
 
 
 def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True):
