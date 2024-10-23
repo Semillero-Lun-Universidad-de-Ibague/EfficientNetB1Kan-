@@ -1,23 +1,17 @@
-from torchvision.models import resnext50_32x4d
-import torch
+import torch, gc, math, nni
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms, models
-from torch.utils.data import DataLoader
-from torchsummary import summary
-import gc
 import matplotlib.pyplot as plt
-import math
+
+from torchvision import datasets, transforms, models
+from torchvision.models import vgg16
+from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor
+from torchsummary import summary
 
 from kcn import KANLinear
 
-import nni
-import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
 
 class ResNext_KAN(nn.Module):
 
@@ -30,8 +24,6 @@ class ResNext_KAN(nn.Module):
         in_features = self.resnext.fc.in_features
 
         num_features = 512
-
-        print(self.resnext)
 
         if params is None:
             self.kan_layer1 = KANLinear(num_features, num_features)
