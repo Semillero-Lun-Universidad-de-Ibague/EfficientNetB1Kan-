@@ -188,6 +188,7 @@ class KANLinear(nn.Module):
         self.grid.copy_(grid.T)
         self.spline_weight.data.copy_(self.curve2coeff(x, unreduced_spline_output))
 
+
     def regularization_loss(self, regularize_activation=1.0, regularize_entropy=1.0):
         l1_fake = self.spline_weight.abs().mean(-1)
         regularization_loss_activation = l1_fake.sum()
