@@ -8,7 +8,7 @@ sys.path.append('..')
 import common_testing
 from common_testing import test_model
 from utils import get_data_from_json
-from models.laura_vgg_kan import VGG16_KAN
+from models.laura_vgg_kan_try import VGG16_KAN
 from models.laura_resnext_kan import ResNext_KAN
 from models.efficientnet_kan import EfficientNetB1_KAN
 
@@ -32,20 +32,22 @@ if __name__ == '__main__':
     params_nni = nni.get_next_parameter()
 
     params = {
-        'grid_size': params_nni.get('grid_size', 32),
-        'spline_order': params_nni.get('spline_order', 2),
-        'scale_noise': params_nni.get('scale_noise', 0.66),
-        'scale_base': params_nni.get('scale_base', 0.6),
-        'scale_spline': params_nni.get('scale_spline', 0.62)
+        'grid_size': params_nni.get('grid_size', 16),
+        'spline_order': params_nni.get('spline_order', 3),
+        'scale_noise': params_nni.get('scale_noise', 0.73),
+        'scale_base': params_nni.get('scale_base', 0.76),
+        'scale_spline': params_nni.get('scale_spline', 0.5)
     }
 
     # TODO: continue here, add significance tests       
     if args.model_name == 'vgg':
         vgg = vgg16(pretrained=True)
-        test_model(vgg, 'VGG16_10epochs_{}'.format(date.today()), num_epochs=10, progress_bar=False)
+        test_model(vgg, 'VGG16_10epochs_{}'.format(date.today()), num_epochs=1, progress_bar=False)
     elif args.model_name == 'vgg_kan':
         model = VGG16_KAN(4, params)
-        test_model(model, 'VGG16_KAN_10epochs_{}'.format(date.today()), num_epochs=10, progress_bar=False)
+        # print('VGG KAN model:')
+        # print(model)
+        test_model(model, 'VGG16_KAN_try_1epochs_{}'.format(date.today()), num_epochs=1, progress_bar=False)
     elif args.model_name == 'resnext':
         resnext = resnext50_32x4d(pretrained=True)
         test_model(resnext, 'ResNext_10epochs_{}'.format(date.today()), num_epochs=10, progress_bar=False)
