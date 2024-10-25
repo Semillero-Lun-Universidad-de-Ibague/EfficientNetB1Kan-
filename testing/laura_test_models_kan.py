@@ -59,6 +59,6 @@ if __name__ == '__main__':
         test_model(model, 'EfficientNet_10epochs_{}'.format(date.today()), num_epochs=10, progress_bar=False)
     elif args.model_name == 'efficientnet_kan':     
         model = EfficientNetB1_KAN(4, params)
-        test_model(model, 'EfficientNet_10epochs_kan{}'.format(date.today()), num_epochs=10, progress_bar=False)
+        test_model(model, 'EfficientNet_10epochs_kan{}'.format(date.today()), num_epochs=1, progress_bar=False)
 
 

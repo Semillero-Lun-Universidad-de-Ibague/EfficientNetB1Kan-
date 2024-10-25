@@ -740,5 +740,31 @@
         ],
         "num_epochs": 10,
         "model_name": "EfficientNet_10epochs_kan2024-10-23"
+    },
+    {
+        "accuracy_training": [
+            58.00789170506913
+        ],
+        "accuracy_validation": [
+            55.861059907834104
+        ],
+        "loss_training": [
+            0.2130684797622023
+        ],
+        "loss_validation": [
+            0.10703376482330984
+        ],
+        "time_trainings": [
+            65082.67593383789
+        ],
+        "total_time": 88344.08640861511,
+        "accuracy_testing": [
+            52.978516902944385
+        ],
+        "loss_testing": [
+            0.09900277434983326
+        ],
+        "num_epochs": 1,
+        "model_name": "EfficientNet_10epochs_kan2024-10-25"
     }
 ]
