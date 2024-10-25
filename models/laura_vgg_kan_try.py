@@ -39,7 +39,7 @@ class VGG16_KAN(nn.Module):
 
         if params is None:
             self.kan_layer1 = KANLinear(num_features, num_features)
-            self.kan_layer2 = KANLinear(num_features, num_classes)
+            self.kan_layer2 = KANLinear(num_features, num_features)
 
         else:
             self.kan_layer1 = KANLinear(num_features, num_classes,
@@ -68,19 +68,11 @@ class VGG16_KAN(nn.Module):
         x.requires_grad = True
         x = self.backbone(x)
         x = torch.flatten(x, 1)
-        # Forward pass through KAN layers
         x = self.kan_layer1(x)  
-        # print('Outputs first layer')
-        # print(x.shape)
-        # x = torch.flatten(x, 1)
         x = self.kan_layer2(x)
-        # print('Outputs second layer')
-        # print(x.shape)
         x = torch.flatten(x, 1)
-        print('flattened:')
-        print(x.shape)
         x = self.classifier(x)
-        print('done!')
+        
         return x
 
 

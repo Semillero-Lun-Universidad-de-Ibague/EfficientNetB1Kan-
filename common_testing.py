@@ -220,6 +220,8 @@ def train(criterion, epoch, model, num_epochs, optimizer, train_loader, train_da
 
             optimizer.zero_grad()
             outputs = model(inputs)
+            flattened_output = torch.flatten(outputs, 1)
+            print(flattened_output.shape)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
