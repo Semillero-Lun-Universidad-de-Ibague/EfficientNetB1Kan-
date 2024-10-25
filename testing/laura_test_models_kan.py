@@ -1,4 +1,4 @@
-import os, random, itertools, torch, torchvision, nni, argparse, sys
+import os, random, itertools, torch, torchvision, argparse, sys
 
 from datetime import date
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
@@ -29,14 +29,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Obtener hiperparámetros desde NNI
-    params_nni = nni.get_next_parameter()
+    # params_nni = nni.get_next_parameter()
+# 
+    # params = {
+    #     'grid_size': params_nni.get('grid_size', 16),
+    #     'spline_order': params_nni.get('spline_order', 3),
+    #     'scale_noise': params_nni.get('scale_noise', 0.73),
+    #     'scale_base': params_nni.get('scale_base', 0.76),
+    #     'scale_spline': params_nni.get('scale_spline', 0.5)
+    # }
 
     params = {
-        'grid_size': params_nni.get('grid_size', 16),
-        'spline_order': params_nni.get('spline_order', 3),
-        'scale_noise': params_nni.get('scale_noise', 0.73),
-        'scale_base': params_nni.get('scale_base', 0.76),
-        'scale_spline': params_nni.get('scale_spline', 0.5)
+        'grid_size': 16,
+        'spline_order': 3,
+        'scale_noise': 0.73,
+        'scale_base': 0.76,
+        'scale_spline': 0.5
     }
 
     # TODO: continue here, add significance tests       
