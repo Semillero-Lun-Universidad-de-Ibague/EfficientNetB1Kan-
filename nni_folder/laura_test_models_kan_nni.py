@@ -20,7 +20,7 @@ common_testing_nni.batch_size = 210
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.cuda.set_device(1)
+    torch.cuda.set_device(0)
 
     parser = argparse.ArgumentParser(description='Run this script in order to perform hyperparameter tuning on the desired model.')
     parser.add_argument('model_name', type=str,

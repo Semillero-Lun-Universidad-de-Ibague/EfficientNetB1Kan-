@@ -65,4 +65,4 @@ searchSpace:
     _type: uniform
     _value: [0.5, 0.99]
 
-trialCommand: python3 laura_test_models_kan_nni.py vgg_kan # Comando para ejecutar el script de entrenamiento
+trialCommand: python3 laura_test_models_kan_nni.py efficientnet_kan # Comando para ejecutar el script de entrenamiento
