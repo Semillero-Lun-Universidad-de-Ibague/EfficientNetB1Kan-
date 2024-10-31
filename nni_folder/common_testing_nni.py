@@ -138,7 +138,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
     # save_checkpoint(model, optimizer, '/home/semillerolun/kan/EfficientNetB1Kan-/models/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX, num_epochs)
     # torch.save(model.state_dict(), '/home/semillerolun/kan/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX)
 
-    nni.report_final_result(test_accuracy[-1])
+    nni.report_final_result(accuracy_validation[-1])
 
     return accuracy_validation, loss_validation, time_trainings, test_accuracy[-1], test_loss[-1]
 

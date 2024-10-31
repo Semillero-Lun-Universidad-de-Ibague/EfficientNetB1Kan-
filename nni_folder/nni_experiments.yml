@@ -31,7 +31,7 @@ trainingService:
       password: Semillerolun123
       pythonPath: /home/semillerolun/miniconda3/envs/kan/bin
       gpuIndices: "0"
-      maxTrialNumberPerGpu: 1 
+      maxTrialNumberPerGpu: 1
       useActiveGpu: True
 # 
     # - host: 172.17.100.15
@@ -65,4 +65,4 @@ searchSpace:
     _type: uniform
     _value: [0.5, 0.99]
 
-trialCommand: python3 laura_test_models_kan_nni.py efficientnet_kan # Comando para ejecutar el script de entrenamiento
+trialCommand: python3 test_models_kan_nni.py efficientnet 10 # Comando para ejecutar el script de entrenamiento
