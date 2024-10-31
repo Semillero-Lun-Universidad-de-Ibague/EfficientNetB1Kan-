@@ -1,9 +1,11 @@
 import torch, sys
 import torch.nn as nn
-from torchvision.models import vgg16
+from torchvision.models import vgg16, efficientnet_b1
 
 sys.path.append('..')
-from models.laura_vgg_kan import VGG16_KAN
+from models.laura_vgg_kan_try import VGG16_KAN
+from models.laura_resnext_kan import ResNext_KAN
+from models.efficientnet_kan_try import EfficientNetB1_KAN
 
 params = {
         'grid_size': 32,
@@ -14,8 +16,9 @@ params = {
     }
 
 # Load a pretrained VGG16 model
-model = vgg16(pretrained=True)
-# model = VGG16_KAN(4, params)
+# model = vgg16(pretrained=True)
+model = EfficientNetB1_KAN(4, params)
+# model = efficientnet_b1(pretrained=True)
 
 # Set the model to evaluation mode
 model.eval()
@@ -28,8 +31,8 @@ def save_gradient(grad):
     gradients.append(grad)
 
 # Register a hook on the last layer (classifier's last linear layer in VGG16)
-layer = model.classifier[-1]
-# layer = model.kan_layer2
+# layer = model.features[-1]
+layer = model.kan_layer2
 hook = layer.register_backward_hook(lambda module, grad_input, grad_output: save_gradient(grad_output[0]))
 
 # Create a dummy input (e.g., an image of the appropriate size for VGG16)
@@ -43,9 +46,12 @@ target_class = output[0, 1]  # Example: class index 281
 
 # Perform backward pass to compute gradients
 target_class.backward()
+print(model)
 
 # Access the gradients
-print("Extracted Gradients:", len(gradients[0].shape))  # (1, 1000) for VGG16's output layer
+print("Extracted Gradients:", gradients[0])  # (1, 1000) for VGG16's output layer
+print("Extracted Gradients Shape:", gradients[0].shape)  # (1, 1000) for VGG16's output layer
+print("Extracted Gradients Length:", len(gradients[0].shape))  # (1, 1000) for VGG16's output layer
 
 # Don't forget to remove the hook when done
 hook.remove()

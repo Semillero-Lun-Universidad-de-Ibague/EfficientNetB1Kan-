@@ -1,6 +1,5 @@
 import torch, cv2, argparse, sys
 import numpy as np
-import tensorflow as tf
 from torchvision import transforms
 from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 
@@ -9,13 +8,13 @@ from utils import load_model_from_state
 from models.laura_vgg_kan import VGG16_KAN
 # from models.laura_vgg_kan_try import VGG16_KAN
 from models.laura_resnext_kan import ResNext_KAN
-from models.efficientnet_kan import EfficientNetB1_KAN
-# from pytorch_grad_cam import GradCAM, HiResCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from models.efficientnet_kan_try import EfficientNetB1_KAN
+from pytorch_grad_cam import GradCAM, HiResCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
 # from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 # from pytorch_grad_cam.utils.image import show_cam_on_image
-from custom_grad_cam.pytorch_grad_cam.grad_cam import GradCAM
-from custom_grad_cam.pytorch_grad_cam.score_cam import ScoreCAM
-from custom_grad_cam.pytorch_grad_cam.eigen_cam import EigenCAM
+# from custom_grad_cam.pytorch_grad_cam.grad_cam import GradCAM
+# from custom_grad_cam.pytorch_grad_cam.score_cam import ScoreCAM
+# from custom_grad_cam.pytorch_grad_cam.eigen_cam import EigenCAM
 from custom_grad_cam.pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from custom_grad_cam.pytorch_grad_cam.utils.image import show_cam_on_image
 
@@ -33,8 +32,10 @@ def visualize_image_with_model(path_to_model, model_type, path_to_image):
 
     # Load and preprocess the image
     img = cv2.imread(path_to_image)
+    # img = cv2.resize(img, (240, 240))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_tensor = test_transform(img).unsqueeze(0)
+    print(img_tensor)
 
     params = {
         'grid_size': 32,
@@ -76,7 +77,7 @@ def visualize_image_with_model(path_to_model, model_type, path_to_image):
     # An exception occurred in CAM with block: <class 'IndexError'>. Message: index 4 is out of bounds for dimension 0 with size 4
     # If it's set to =< 3 I get this one:
     # ValueError: Invalid grads shape.Shape of grads should be 4 (2D image) or 5 (3D image).
-    targets = [ClassifierOutputTarget(3)]
+    targets = [ClassifierOutputTarget(0)]
 
 
     # Construct the CAM object once, and then re-use it on many images.
