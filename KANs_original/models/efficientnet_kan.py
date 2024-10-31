@@ -1,27 +1,32 @@
-import torch, gc, math, nni
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import matplotlib.pyplot as plt
-
-from torchvision import datasets, transforms, models
-from torchvision.models import vgg16
-from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
-from torchsummary import summary
-
+## import torch.nn.functional as F
+## import torch.optim as optim
+## from torchvision import datasets, transforms, models
+## from torch.utils.data import DataLoader
+## from torchsummary import summary
+## from torchvision.models import efficientnet_b2, efficientnet_b1
+from torchvision.models import efficientnet_b1
 from kcn import KANLinear
 
+## import gc
+## import matplotlib.pyplot as plt
+## import math
 
-class ResNext_KAN(nn.Module):
+## import nni
+## from torch.utils.data import DataLoader
+## from torchvision import datasets
+## from torchvision.transforms import ToTensor
+
+class EfficientNetB1_KAN(nn.Module):
 
     def __init__(self, num_classes=1000, params=None, pretrained=True):
-        super(ResNext_KAN, self).__init__()
+        super(EfficientNetB1_KAN, self).__init__()
         # Load pre-trained EfficientNet-B1 model
-        self.resnext = resnext50_32x4d(pretrained=pretrained)
+        self.efficientnet = efficientnet_b1(pretrained=pretrained)
 
         # Remove the final MLP layers (usually a Linear layer)
-        in_features = self.resnext.fc.in_features
+        in_features = self.efficientnet.classifier[1].in_features
 
         num_features = 512
 
@@ -49,18 +54,12 @@ class ResNext_KAN(nn.Module):
         self.kan_layer2 = KANLinear(512, num_classes)
 
     def forward(self, x):
-        x = self.resnext.conv1(x)
-        x = self.resnext.bn1(x)
-        x = self.resnext.relu(x)
-        x = self.resnext.maxpool(x)
-        x = self.resnext.layer1(x)
-        x = self.resnext.layer2(x)
-        x = self.resnext.layer3(x)
-        x = self.resnext.layer4(x)
-        x = self.resnext.avgpool(x)
+        x = self.efficientnet.features(x)
+        x = self.efficientnet.avgpool(x)
         x = torch.flatten(x, 1)
         # Forward pass through KAN layers
-        x = self.kan_layer1(x)  
+        x = self.kan_layer1(x)
         x = self.kan_layer2(x)
         return x
+
 

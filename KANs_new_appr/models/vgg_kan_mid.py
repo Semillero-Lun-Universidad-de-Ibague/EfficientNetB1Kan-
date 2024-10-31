@@ -1,34 +1,39 @@
-import torch
+import torch, gc, math, nni
 import torch.nn as nn
-## import torch.nn.functional as F
-## import torch.optim as optim
-## from torchvision import datasets, transforms, models
-## from torch.utils.data import DataLoader
-## from torchsummary import summary
-## from torchvision.models import efficientnet_b2, efficientnet_b1
-from torchvision.models import efficientnet_b1
+import torch.nn.functional as F
+import torch.optim as optim
+import matplotlib.pyplot as plt
+
+from torchvision import datasets, transforms, models
+from torchvision.models import vgg16
+from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor
+from torchsummary import summary
+
 from kcn import KANLinear
 
-## import gc
-## import matplotlib.pyplot as plt
-## import math
 
-## import nni
-## from torch.utils.data import DataLoader
-## from torchvision import datasets
-## from torchvision.transforms import ToTensor
-
-class EfficientNetB1_KAN(nn.Module):
+class VGG16_KAN_Mid(nn.Module):
 
     def __init__(self, num_classes=1000, params=None, pretrained=True):
-        super(EfficientNetB1_KAN, self).__init__()
+        super(VGG16_KAN_Mid, self).__init__()
         # Load pre-trained EfficientNet-B1 model
-        efficientnet = efficientnet_b1(pretrained=pretrained)
+        vgg = vgg16(pretrained=pretrained)
 
-        self.backbone = nn.Sequential(*list(efficientnet.children())[:-1])
+        # print('Normal VGG model:')
+        # print(vgg)
 
+        # Step 2: Freeze the backbone's parameters (optional)
+        for param in vgg.parameters():
+            param.requires_grad = False
+
+        # Step 3: Extract the feature extraction part (everything except the final FC layer)
+        self.backbone = nn.Sequential(*list(vgg.children())[:-1])
+
+        # print('Backbone of VGG model:')
+        # print(self.backbone)
         # Remove the final MLP layers (usually a Linear layer)
-        in_features = efficientnet.classifier[1].in_features
+        in_features = vgg.classifier[0].in_features
 
         num_features = 512
 
@@ -54,9 +59,10 @@ class EfficientNetB1_KAN(nn.Module):
         # Define KAN layers to replace MLP
         self.kan_layer1 = KANLinear(in_features, 512)
         self.kan_layer2 = KANLinear(512, in_features)
+        self.classifier = vgg.classifier
 
-        self.classifier = efficientnet.classifier
-
+        # print('Classifier of VGG model:')
+        # print(self.classifier)
 
     def forward(self, x):
         x.requires_grad = True
@@ -66,7 +72,7 @@ class EfficientNetB1_KAN(nn.Module):
         x = self.kan_layer2(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-
+        
         return x
 
 

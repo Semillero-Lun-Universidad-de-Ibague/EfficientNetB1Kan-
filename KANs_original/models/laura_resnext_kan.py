@@ -5,7 +5,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 from torchvision import datasets, transforms, models
-from torchvision.models import vgg16
+from torchvision.models import resnext50_32x4d
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from torchsummary import summary
@@ -13,33 +13,21 @@ from torchsummary import summary
 from kcn import KANLinear
 
 
-class VGG16_KAN(nn.Module):
+class ResNext_KAN(nn.Module):
 
     def __init__(self, num_classes=1000, params=None, pretrained=True):
-        super(VGG16_KAN, self).__init__()
+        super(ResNext_KAN, self).__init__()
         # Load pre-trained EfficientNet-B1 model
-        vgg = vgg16(pretrained=pretrained)
+        self.resnext = resnext50_32x4d(pretrained=pretrained)
 
-        # print('Normal VGG model:')
-        # print(vgg)
-
-        # Step 2: Freeze the backbone's parameters (optional)
-        for param in vgg.parameters():
-            param.requires_grad = False
-
-        # Step 3: Extract the feature extraction part (everything except the final FC layer)
-        self.backbone = nn.Sequential(*list(vgg.children())[:-1])
-
-        # print('Backbone of VGG model:')
-        # print(self.backbone)
         # Remove the final MLP layers (usually a Linear layer)
-        in_features = vgg.classifier[0].in_features
+        in_features = self.resnext.fc.in_features
 
         num_features = 512
 
         if params is None:
             self.kan_layer1 = KANLinear(num_features, num_features)
-            self.kan_layer2 = KANLinear(num_features, num_features)
+            self.kan_layer2 = KANLinear(num_features, num_classes)
 
         else:
             self.kan_layer1 = KANLinear(num_features, num_classes,
@@ -58,21 +46,21 @@ class VGG16_KAN(nn.Module):
 
         # Define KAN layers to replace MLP
         self.kan_layer1 = KANLinear(in_features, 512)
-        self.kan_layer2 = KANLinear(512, in_features)
-        self.classifier = vgg.classifier
-
-        # print('Classifier of VGG model:')
-        # print(self.classifier)
+        self.kan_layer2 = KANLinear(512, num_classes)
 
     def forward(self, x):
-        x.requires_grad = True
-        x = self.backbone(x)
+        x = self.resnext.conv1(x)
+        x = self.resnext.bn1(x)
+        x = self.resnext.relu(x)
+        x = self.resnext.maxpool(x)
+        x = self.resnext.layer1(x)
+        x = self.resnext.layer2(x)
+        x = self.resnext.layer3(x)
+        x = self.resnext.layer4(x)
+        x = self.resnext.avgpool(x)
         x = torch.flatten(x, 1)
+        # Forward pass through KAN layers
         x = self.kan_layer1(x)  
         x = self.kan_layer2(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        
         return x
-
 
