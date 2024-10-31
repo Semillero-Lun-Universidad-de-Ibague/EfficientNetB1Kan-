@@ -2,7 +2,7 @@ import torch, json, time
 import numpy as np
 import torch.optim as optim
 
-from models.ConvNeXt_KAN import ConvNeXtKAN
+# from models.ConvNeXt_KAN import ConvNeXtKAN
 from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 
 
@@ -91,6 +91,32 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -----------------------------
 # SAVING & LOADING CHECKPOINTS
 # -----------------------------
+
+class SaveBestModel:
+    """
+    Class to save the best model while training. If the current epoch's 
+    validation loss is less than the previous least less, then save the
+    model state.
+    """
+    def __init__(
+        self, best_valid_loss=float('inf')
+    ):
+        self.best_valid_loss = best_valid_loss
+    def __call__(
+        self, current_valid_loss, 
+        epoch, model, optimizer, criterion, save_path
+    ):
+        if current_valid_loss < self.best_valid_loss:
+            self.best_valid_loss = current_valid_loss
+            print(f"\nBest validation loss: {self.best_valid_loss}")
+            print(f"\nSaving best model for epoch: {epoch+1}\n")
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': criterion,
+                }, save_path)
+
 
 def save_checkpoint(model, optimizer, save_path, epoch):
     torch.save({
