@@ -1,8 +1,6 @@
 import torch, time
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
-import numpy as np
 
 from tqdm import tqdm
 from torchsummary import summary
@@ -10,8 +8,7 @@ from torchvision.transforms import functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from data_preparation import prepare_dataset
-from utils import EarlyStopping, update_json_with_key, Timer, save_checkpoint  
-from evaluation.significance_testing import test_statistical_significance
+from utils import EarlyStopping, update_json_with_key, Timer, SaveBestModel
 
 NAME_JSON_FILE = 'data.json'
 NAME_PRED_FILE = 'preds.json'
@@ -63,15 +60,16 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
     loss_validation = []
     loss_training = []
 
-    test_loss = []
-    test_accuracy = []
-    predictions = []
-    labels = []
+    # test_loss = []
+    # test_accuracy = []
 
     time_trainings = []
     time_training = Timer()
     total_time = Timer()
     total_time.start()
+
+    save_best_model = SaveBestModel()
+    best_valid_loss = float('inf')
 
     for epoch in range(num_epochs):
 
@@ -87,6 +85,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
         # Validation
         val_acc, val_loss = validation(criterion, model, valid_loader, valid_dataset, progress_bar)
+        save_best_model(val_loss, epoch, model, optimizer, criterion, '/home/semillerolun/kan/model_checkpoints/' + model_name + '_best_' + MODEL_SAVING_POSTFIX)
 
         loss_validation.append(val_loss)
         accuracy_validation.append(val_acc)
@@ -94,10 +93,12 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
         # Step the scheduler
         scheduler.step(val_acc)
 
-        a_t, l_t, preds, targets = testing(criterion, model, test_loader, test_dataset)
+        # a_t, l_t, preds, targets = testing(criterion, model, test_loader, test_dataset)
+        if val_loss < best_valid_loss:
+            best_valid_loss = val_loss
 
-        test_loss.append(l_t)
-        test_accuracy.append(a_t)
+        # test_loss.append(l_t)
+        # test_accuracy.append(a_t)
 
         # Check early stopping
         if early_stopping(val_loss, model):
@@ -116,8 +117,8 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
         "time_trainings": time_trainings,
         "total_time": total_time.elapsed_time,
 
-        "accuracy_testing": test_accuracy,
-        "loss_testing": test_loss,
+        # "accuracy_testing": test_accuracy,
+        # "loss_testing": test_loss,
 
         "num_epochs": num_epochs,
 
@@ -125,54 +126,41 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
     }
 
-    preds_json = {
-        "preds": [el.item() for el in preds], 
-        "labels": [el.item() for el in targets],
-        "model_name": model_name
-        }
-
     update_json_with_key(NAME_JSON_FILE, tb_json)
-    update_json_with_key(NAME_PRED_FILE, preds_json)
 
-    print('Saving model: {}'.format(model))
-    # save_checkpoint(model, optimizer, '/home/semillerolun/kan/EfficientNetB1Kan-/models/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX, num_epochs)
-    torch.save(model.state_dict(), '/home/semillerolun/kan/model_checkpoints/' + model_name + MODEL_SAVING_POSTFIX)
-
-    return accuracy_validation, loss_validation, time_trainings, test_accuracy[-1], test_loss[-1]
+    return accuracy_validation, loss_validation, time_trainings
 
 
-def testing(criterion, model, test_loader, test_dataset):
-    model.eval()
-    val_loss = 0.0
-    val_correct = 0
-    val_total = 0
-    preds, targets = [], []
-    with tqdm(total=len(test_loader), desc='Testing', unit='batch') as pbar:
-        with torch.no_grad():
-            for inputs, labels in test_loader:
-
-                if torch.cuda.is_available():
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
-
-                outputs = model(inputs)
-                flattened_output = torch.flatten(outputs, 1)
-                # loss = criterion(outputs, labels)
-                loss = criterion(flattened_output, labels)
-                val_loss += loss.item() * inputs.size(0)
-                _, predicted = torch.max(outputs, 1)
-                val_total += labels.size(0)
-                val_correct += (predicted == labels).sum().item()
-                preds.extend(predicted)
-                targets.extend(labels)
-                # Update progress bar
-                pbar.set_postfix(val_loss=val_loss / (val_total + 1e-8), val_accuracy=val_correct / val_total)
-                pbar.update()
-
-    # return avg loss and accuracy
-    accuracy_testing = val_correct / val_total
-    loss_testing = val_loss / len(test_dataset)
-    return accuracy_testing, loss_testing, preds, targets       
+# def testing(criterion, model, test_loader, test_dataset):
+#     model.eval()
+#     val_loss = 0.0
+#     val_correct = 0
+#     val_total = 0
+#     preds, targets = [], []
+#     with tqdm(total=len(test_loader), desc='Testing', unit='batch') as pbar:
+#         with torch.no_grad():
+#             for inputs, labels in test_loader:
+# 
+#                 if torch.cuda.is_available():
+#                     inputs = inputs.to(device)
+#                     labels = labels.to(device)
+# 
+#                 outputs = model(inputs)
+#                 loss = criterion(outputs, labels)
+#                 val_loss += loss.item() * inputs.size(0)
+#                 _, predicted = torch.max(outputs, 1)
+#                 val_total += labels.size(0)
+#                 val_correct += (predicted == labels).sum().item()
+#                 preds.extend(predicted)
+#                 targets.extend(labels)
+#                 # Update progress bar
+#                 pbar.set_postfix(val_loss=val_loss / (val_total + 1e-8), val_accuracy=val_correct / val_total)
+#                 pbar.update()
+# 
+#     # return avg loss and accuracy
+#     accuracy_testing = val_correct / val_total
+#     loss_testing = val_loss / len(test_dataset)
+#     return accuracy_testing, loss_testing, preds, targets       
 
 
 def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True):
@@ -180,6 +168,7 @@ def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True)
     val_loss = 0.0
     val_correct = 0
     val_total = 0
+
     # Validation loop with progress bar
     with tqdm(total=len(valid_loader), desc='Validation', unit='batch', disable=progress_bar) as pbar:
         with torch.no_grad():
@@ -190,9 +179,7 @@ def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True)
                     labels = labels.to(device)
 
                 outputs = model(inputs)
-                flattened_output = torch.flatten(outputs, 1)
-                # loss = criterion(outputs, labels)
-                loss = criterion(flattened_output, labels)
+                loss = criterion(outputs, labels)
                 val_loss += loss.item() * inputs.size(0)
                 _, predicted = torch.max(outputs, 1)
                 val_total += labels.size(0)
@@ -204,6 +191,7 @@ def validation(criterion, model, valid_loader, valid_dataset, progress_bar=True)
     val_loss = val_loss / len(valid_dataset)
     val_acc = val_correct / val_total
     print(f'Validation Loss: {val_loss:.4f} - Accuracy: {val_acc:.4f}')
+
     return val_acc, val_loss
 
 
@@ -224,10 +212,7 @@ def train(criterion, epoch, model, num_epochs, optimizer, train_loader, train_da
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            flattened_output = torch.flatten(outputs, 1)
-            # print(flattened_output.shape)
-            # loss = criterion(outputs, labels)
-            loss = criterion(flattened_output, labels)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
