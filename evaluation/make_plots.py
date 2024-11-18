@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('model_name', type=str,
                         help='pass the name of the desired model')
     parser.add_argument('json_name', type=str,
-                        help='pass the name of the desired model')
+                        help='pass the name of the prediction file')
 
     args = parser.parse_args()
 

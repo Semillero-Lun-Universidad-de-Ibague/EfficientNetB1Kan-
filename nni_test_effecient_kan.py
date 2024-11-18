@@ -1,16 +1,3 @@
-## import os
-## import random
-## from tqdm import tqdm
-## import pandas as pd
-## import matplotlib.pyplot as plt
-## import seaborn as sns
-## import cv2
-## import random
-## from IPython.display import Image
-## import imutils
-
-## from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
 import torch, nni
 import common_testing
 import torch.nn as nn
@@ -18,12 +5,7 @@ import torch.optim as optim
 import numpy as np
 
 from efficientnet_kan import EfficientNetB1_KAN
-## from torch.optim.lr_scheduler import ReduceLROnPlateau
 from nni.experiment import Experiment
-## import torchvision
-
-## from common import get_data_from_json
-## from kcn import ConvNeXtKAN
 from common_testing import prepare_dataset, update_json_with_key, train, validation, testing, Timer
 
 

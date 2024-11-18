@@ -8,23 +8,27 @@ from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 sys.path.append('..')
 from data_preparation import prepare_dataset
 from utils import update_json_with_key
-from KANs_original.models.laura_vgg_kan import VGG16_KAN
-from KANs_original.models.laura_resnext_kan import ResNext_KAN
+from KANs_original.models.vgg_kan import VGG16_KAN
+from KANs_original.models.resnext_kan import ResNext_KAN
 from KANs_original.models.efficientnet_kan import EfficientNetB1_KAN
 from KANs_new_appr.models.vgg_kan_mid import VGG16_KAN_Mid
+from KANs_new_appr.models.resnext_kan_mid import ResNext_KAN_Mid
 from KANs_new_appr.models.efficientnet_kan_mid import EfficientNetB1_KAN_Mid
+from KANs_new_appr.models.efficientnet_convkan_mid import EfficientNetB1_ConvKAN_Mid
+from KANs_new_appr.models.kan_model import KAN_Model
+from KANs_new_appr.models.kan_conv_model import ConvKAN_Model
 
 NAME_JSON_FILE = 'data.json'
 NAME_PRED_FILE = 'preds.json'
 
 MODEL_SAVING_POSTFIX = "_checkpoint.pth"
 
-batch_size = 32
+batch_size = 8
 
 # try:
 #     device
 # except NameError:
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Vytiskněte souhrn modelu
 def print_model_summary(model, input_size=(3, 128, 128)):
@@ -34,8 +38,11 @@ def print_model_summary(model, input_size=(3, 128, 128)):
 
 def test_model(model, model_name, save_preds=False):
 
-    # prepare_dataset(batch_size, '~/kan/')
-    datasets, loaders = prepare_dataset(batch_size, '~/kan/')
+    print(model_name)
+    if model_name.startswith('Conv'):
+        datasets, loaders = prepare_dataset(batch_size, '~/kan/', grayscale=True)
+    else:
+        datasets, loaders = prepare_dataset(batch_size, '~/kan/')
 
     test_loader = loaders[2]
 
@@ -107,6 +114,7 @@ if __name__ == '__main__':
         model = vgg16(pretrained=True)
     elif args.model_type == 'vgg_kan':
         params = {
+        'num_layers': 3,
         'grid_size': 16, # 8,
         'spline_order': 2, # 3,
         'scale_noise': 0.4, # 0.5,
@@ -116,6 +124,7 @@ if __name__ == '__main__':
         model = VGG16_KAN(4, params)
     elif args.model_type == 'vgg_kan_mid':
         params = {
+        'num_layers': 3,
         'grid_size':  16,
         'spline_order':  3,
         'scale_noise':  0.75,
@@ -127,6 +136,7 @@ if __name__ == '__main__':
         model = resnext50_32x4d(pretrained=True)
     elif args.model_type == 'resnext_kan':
         params = {
+        'num_layers': 3,
         'grid_size':  64,
         'spline_order':  3,
         'scale_noise':  0.6,
@@ -134,10 +144,21 @@ if __name__ == '__main__':
         'scale_spline':  0.81
         }
         model = ResNext_KAN(4, params)
+    elif args.model_type == 'resnext_kan_mid':
+        params = {
+        'num_layers': 3,
+        'grid_size':  64,
+        'spline_order':  3,
+        'scale_noise':  0.6,
+        'scale_base':  0.8,
+        'scale_spline':  0.81
+        }
+        model = ResNext_KAN_Mid(4, params)
     elif args.model_type == 'efficientnet':     
         model = efficientnet_b1(pretrained=True)
     elif args.model_type == 'efficientnet_kan': 
         params = {
+        'num_layers': 3,
         'grid_size':  16,
         'spline_order':  3,
         'scale_noise':  0.4,
@@ -147,6 +168,7 @@ if __name__ == '__main__':
         model = EfficientNetB1_KAN(4, params)
     elif args.model_type == 'efficientnet_kan_mid':
         params = {
+        'num_layers': 3,
         'grid_size':  32,
         'spline_order':  3,
         'scale_noise':  0.54,
@@ -154,11 +176,37 @@ if __name__ == '__main__':
         'scale_spline':  0.68
         }
         model = EfficientNetB1_KAN_Mid(4, params)
-
+    elif args.model_type == 'efficientnet_convkan_mid':
+        params = {
+        'num_layers': 3,
+        'padding': 1,
+        'kernel_size': 3,
+        'stride': 1
+        }
+        model = EfficientNetB1_ConvKAN_Mid(4, params)
+    elif args.model_type == 'kan':
+        params = {
+        'num_layers': 3,
+        'grid_size':  32,
+        'spline_order':  3,
+        'scale_noise':  0.54,
+        'scale_base':  0.61,
+        'scale_spline':  0.68
+        }
+        model = KAN_Model(4, params)
+    elif args.model_type == 'conv_kan':
+        params = {
+        'num_layers': 3,
+        'padding': 1,
+        'kernel_size': 3,
+        'stride': 1
+        }
+        model = ConvKAN_Model(4, params)
     checkpoint = torch.load(args.model_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.to(device)
 
     acc = test_model(model, model_name, args.save_preds)
 
+    print(args.model_type)
     print(acc)

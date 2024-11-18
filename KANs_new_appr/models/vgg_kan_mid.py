@@ -1,21 +1,12 @@
-import torch, gc, math, nni
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import matplotlib.pyplot as plt
-
-from torchvision import datasets, transforms, models
 from torchvision.models import vgg16
-from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
-from torchsummary import summary
-
 from kcn import KANLinear
 
 
 class VGG16_KAN_Mid(nn.Module):
 
-    def __init__(self, num_classes=1000, params=None, pretrained=True):
+    def __init__(self, num_classes=4, params=None, pretrained=True, num_features=32):
         super(VGG16_KAN_Mid, self).__init__()
         # Load pre-trained EfficientNet-B1 model
         vgg = vgg16(pretrained=pretrained)
@@ -35,44 +26,46 @@ class VGG16_KAN_Mid(nn.Module):
         # Remove the final MLP layers (usually a Linear layer)
         in_features = vgg.classifier[0].in_features
 
-        num_features = 512
-
+        kan_layers = []
         if params is None:
-            self.kan_layer1 = KANLinear(num_features, num_features)
-            self.kan_layer2 = KANLinear(num_features, num_features)
-
+            kan_layers.append(KANLinear(in_features, num_features))
+            kan_layers.append(KANLinear(num_features, in_features))
+            # kan_layer1 = KANLinear(in_features, num_features)
+            # kan_layer2 = KANLinear(num_features, in_features)
         else:
-            self.kan_layer1 = KANLinear(num_features, num_classes,
+            kan_layers.append(KANLinear(in_features, num_features,
                                         grid_size=params['grid_size'],
                                         spline_order=params['spline_order'],
                                         scale_noise=params['scale_noise'],
                                         scale_base=params['scale_base'],
                                         scale_spline=params['scale_spline']
-                                        )
-            self.kan_layer2 = KANLinear(num_classes, num_features,
+                                        ))
+            for layer in list(range(params['num_layers'] - 1)):
+                if layer == list(range(params['num_layers'] - 1))[-1]:
+                    output_size = in_features
+                else:
+                    output_size = num_features
+                kan_layers.append(KANLinear(num_features, output_size,
                                         grid_size=params['grid_size'],
                                         spline_order=params['spline_order'],
                                         scale_noise=params['scale_noise'],
                                         scale_base=params['scale_base'],
-                                        scale_spline=params['scale_spline'])
-
-        # Define KAN layers to replace MLP
-        self.kan_layer1 = KANLinear(in_features, 512)
-        self.kan_layer2 = KANLinear(512, in_features)
+                                        scale_spline=params['scale_spline']
+                                        ))
+                
+        
+        self.feature_extractor = nn.Sequential(*kan_layers)
+        # self.kan_layers = nn.ModuleList(kan_layers)
         self.classifier = vgg.classifier
 
-        # print('Classifier of VGG model:')
-        # print(self.classifier)
 
     def forward(self, x):
         x.requires_grad = True
         x = self.backbone(x)
-        x = torch.flatten(x, 1)
-        x = self.kan_layer1(x)  
-        x = self.kan_layer2(x)
-        x = torch.flatten(x, 1)
+        x = self.feature_extractor(x)
+        # for layer in self.kan_layers:
+        #     # layer.cuda()
+        #     x = layer(x)
         x = self.classifier(x)
         
         return x
-
-

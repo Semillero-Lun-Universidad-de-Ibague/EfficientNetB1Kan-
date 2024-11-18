@@ -1,13 +1,6 @@
 import torch, math
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-## from torchvision import datasets, transforms, models
-from torchvision import models
-## from torch.utils.data import DataLoader
-## from torchsummary import summary
-## import gc
-## import matplotlib.pyplot as plt
 
 
 class KANLinear(nn.Module):
@@ -82,6 +75,9 @@ class KANLinear(nn.Module):
                 nn.init.kaiming_uniform_(self.spline_scaler, a=math.sqrt(5) * self.scale_spline)
 
     def b_splines(self, x):
+        # print('Dimension: {}'.format(x.dim()))
+        # print('Size: {}'.format(x.size(1)))
+        # print('Features: {}'.format(self.in_features))
         assert x.dim() == 2 and x.size(1) == self.in_features
 
         grid = self.grid
@@ -106,6 +102,9 @@ class KANLinear(nn.Module):
         return bases.contiguous()
 
     def curve2coeff(self, x, y):
+        # print('Dimension: {}'.format(x.dim()))
+        # print('Size: {}'.format(x.size(1)))
+        # print('Features: {}'.format(self.in_features))
         assert x.dim() == 2 and x.size(1) == self.in_features
         assert y.size() == (x.size(0), self.in_features, self.out_features)
 
@@ -130,6 +129,10 @@ class KANLinear(nn.Module):
         )
 
     def forward(self, x):
+        # print(x.shape)
+        # print('Dimension: {}'.format(x.dim()))
+        # print('Size: {}'.format(x.size(1)))
+        # print('Features: {}'.format(self.in_features))
         if x.dim() != 2 or x.size(1) != self.in_features:
             x = x.view(x.size(0), -1)  # Flatten the tensor
 
@@ -144,6 +147,9 @@ class KANLinear(nn.Module):
 
     @torch.no_grad()
     def update_grid(self, x, margin=0.01):
+        # print('Dimension: {}'.format(x.dim()))
+        # print('Size: {}'.format(x.size(1)))
+        # print('Features: {}'.format(self.in_features))
         assert x.dim() == 2 and x.size(1) == self.in_features
         batch = x.size(0)
 

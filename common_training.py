@@ -15,7 +15,7 @@ NAME_PRED_FILE = 'preds.json'
 
 MODEL_SAVING_POSTFIX = "_checkpoint.pth"
 
-batch_size = 32
+batch_size = 8
 
 # try:
 #     device
@@ -25,17 +25,23 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Vytiskněte souhrn modelu
 def print_model_summary(model, input_size=(3, 128, 128)):
     model.train()
-    summary(model, input_size=input_size)
+    # summary(model, input_size=input_size)
 
 
-def test_model(model, model_name, num_epochs=5, progress_bar=True):
-
+def train_model(model, model_name, num_epochs=5, progress_bar=True):
+    
     # prepare_dataset(batch_size, '~/kan/')
-    datasets, loaders = prepare_dataset(batch_size, '~/kan/')
+    print(model_name)
+    if model_name.startswith('Conv'):
+        datasets, loaders = prepare_dataset(batch_size, '~/kan/', grayscale=True)
+    else:
+        datasets, loaders = prepare_dataset(batch_size, '~/kan/')
 
+    print('loaded datasets')
     train_dataset, valid_dataset, test_dataset = datasets[0], datasets[1], datasets[2]
     train_loader, valid_loader, test_loader = loaders[0], loaders[1], loaders[2]
-
+    print('put data into dataloader')
+    print(device)
     model = model.to(device)
 
     print_model_summary(model)
@@ -85,7 +91,7 @@ def test_model(model, model_name, num_epochs=5, progress_bar=True):
 
         # Validation
         val_acc, val_loss = validation(criterion, model, valid_loader, valid_dataset, progress_bar)
-        save_best_model(val_loss, epoch, model, optimizer, criterion, '/home/semillerolun/kan/model_checkpoints/' + model_name + '_best_' + MODEL_SAVING_POSTFIX)
+        save_best_model(val_loss, epoch, model, optimizer, criterion, '/home/semillerolun/kan/model_checkpoints/' + model_name + '_best' + MODEL_SAVING_POSTFIX)
 
         loss_validation.append(val_loss)
         accuracy_validation.append(val_acc)

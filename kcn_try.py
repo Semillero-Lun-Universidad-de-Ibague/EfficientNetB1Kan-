@@ -1,13 +1,6 @@
 import torch, math
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-## from torchvision import datasets, transforms, models
-from torchvision import models
-## from torch.utils.data import DataLoader
-## from torchsummary import summary
-## import gc
-## import matplotlib.pyplot as plt
 
 
 class KANLinear(nn.Module):

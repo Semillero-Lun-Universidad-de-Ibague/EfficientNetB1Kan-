@@ -1,4 +1,4 @@
-import torch, gc, math, nni
+import torch, gc, math
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -15,7 +15,7 @@ from kcn import KANLinear
 
 class ResNext_KAN(nn.Module):
 
-    def __init__(self, num_classes=1000, params=None, pretrained=True):
+    def __init__(self, num_classes=1000, params=None, pretrained=True, num_features=32):
         super(ResNext_KAN, self).__init__()
         # Load pre-trained EfficientNet-B1 model
         self.resnext = resnext50_32x4d(pretrained=pretrained)
@@ -23,30 +23,34 @@ class ResNext_KAN(nn.Module):
         # Remove the final MLP layers (usually a Linear layer)
         in_features = self.resnext.fc.in_features
 
-        num_features = 512
-
+        kan_layers = []
         if params is None:
-            self.kan_layer1 = KANLinear(num_features, num_features)
-            self.kan_layer2 = KANLinear(num_features, num_classes)
+            kan_layers.append(KANLinear(in_features, num_features))
+            kan_layers.append(KANLinear(num_features, in_features))
 
         else:
-            self.kan_layer1 = KANLinear(num_features, num_classes,
+            kan_layers.append(KANLinear(in_features, num_features,
                                         grid_size=params['grid_size'],
                                         spline_order=params['spline_order'],
                                         scale_noise=params['scale_noise'],
                                         scale_base=params['scale_base'],
                                         scale_spline=params['scale_spline']
-                                        )
-            self.kan_layer2 = KANLinear(num_classes, num_features,
+                                        ))
+            for layer in list(range(params['num_layers'] - 1)):
+                if layer == list(range(params['num_layers'] - 1))[-1]:
+                    output_size = in_features
+                else:
+                    output_size = num_features
+                kan_layers.append(KANLinear(num_features, output_size,
                                         grid_size=params['grid_size'],
                                         spline_order=params['spline_order'],
                                         scale_noise=params['scale_noise'],
                                         scale_base=params['scale_base'],
-                                        scale_spline=params['scale_spline'])
+                                        scale_spline=params['scale_spline']
+                                        ))
 
-        # Define KAN layers to replace MLP
-        self.kan_layer1 = KANLinear(in_features, 512)
-        self.kan_layer2 = KANLinear(512, num_classes)
+        self.feature_extractor = nn.Sequential(*kan_layers)
+        # self.kan_layers = nn.ModuleList(kan_layers)
 
     def forward(self, x):
         x = self.resnext.conv1(x)
@@ -58,9 +62,8 @@ class ResNext_KAN(nn.Module):
         x = self.resnext.layer3(x)
         x = self.resnext.layer4(x)
         x = self.resnext.avgpool(x)
-        x = torch.flatten(x, 1)
-        # Forward pass through KAN layers
-        x = self.kan_layer1(x)  
-        x = self.kan_layer2(x)
+        x = self.feature_extractor(x)
+        # for layer in self.kan_layers:
+        #     x = layer(x)
         return x
 

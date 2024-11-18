@@ -2,9 +2,17 @@ import torch, json, time
 import numpy as np
 import torch.optim as optim
 
-# from models.ConvNeXt_KAN import ConvNeXtKAN
 from torchvision.models import vgg16, resnext50_32x4d, efficientnet_b1
 
+from KANs_original.models.vgg_kan import VGG16_KAN
+from KANs_original.models.resnext_kan import ResNext_KAN
+from KANs_original.models.efficientnet_kan import EfficientNetB1_KAN
+from KANs_new_appr.models.vgg_kan_mid import VGG16_KAN_Mid
+from KANs_new_appr.models.resnext_kan_mid import ResNext_KAN_Mid
+from KANs_new_appr.models.efficientnet_kan_mid import EfficientNetB1_KAN_Mid
+from KANs_new_appr.models.kan_model import KAN_Model
+from KANs_new_appr.models.kan_conv_model import ConvKAN_Model
+from KANs_new_appr.models.efficientnet_convkan_mid import EfficientNetB1_ConvKAN_Mid
 
 # --------
 # CLASSES
@@ -170,6 +178,97 @@ def load_model_from_state(state_dict_path: str, model_type: str):
 
     if model_type == 'vgg':
         model = vgg16(pretrained=True)
+    elif model_type == 'vgg_kan':
+        params = {
+        'num_layers': 3,
+        'grid_size': 16, # 8,
+        'spline_order': 2, # 3,
+        'scale_noise': 0.4, # 0.5,
+        'scale_base': 0.7, # 0.8,
+        'scale_spline': 0.7 # 0.76
+        }
+        model = VGG16_KAN(4, params)
+    elif model_type == 'vgg_kan_mid':
+        params = {
+        'num_layers': 3,
+        'grid_size':  16,
+        'spline_order':  3,
+        'scale_noise':  0.75,
+        'scale_base':  0.75,
+        'scale_spline':  0.75
+        }
+        model = VGG16_KAN_Mid(4, params)
+    elif model_type == 'resnext':
+        resnext = resnext50_32x4d(pretrained=True)
+    elif model_type == 'resnext_kan':
+        params = {
+        'num_layers': 3,
+        'grid_size':  64,
+        'spline_order':  3,
+        'scale_noise':  0.6,
+        'scale_base':  0.8,
+        'scale_spline':  0.81
+        }
+        model = ResNext_KAN(4, params)
+    elif model_type == 'resnext_kan_mid':
+        params = {
+        'num_layers': 3,
+        'grid_size':  64,
+        'spline_order':  3,
+        'scale_noise':  0.6,
+        'scale_base':  0.8,
+        'scale_spline':  0.81
+        }
+        model = ResNext_KAN_Mid(4, params)
+    elif model_type == 'efficientnet':     
+        model = efficientnet_b1(pretrained=True)
+    elif model_type == 'efficientnet_kan': 
+        params = {
+        'num_layers': 3,
+        'grid_size':  16,
+        'spline_order':  3,
+        'scale_noise':  0.4,
+        'scale_base':  0.65,
+        'scale_spline':  0.8
+        }    
+        model = EfficientNetB1_KAN(4, params)
+    elif model_type == 'efficientnet_kan_mid':
+        params = {
+        'num_layers': 3,
+        'grid_size':  32,
+        'spline_order':  3,
+        'scale_noise':  0.54,
+        'scale_base':  0.61,
+        'scale_spline':  0.68
+        }
+        model = EfficientNetB1_KAN_Mid(4, params)
+    elif model_type == 'efficientnet_convkan_mid':
+        params = {
+        'num_layers': 3,
+        'padding': 1,
+        'kernel_size': 3,
+        'stride': 1
+        }
+        model = EfficientNetB1_ConvKAN_Mid(4, params)
+    elif model_type == 'kan':
+        params = {
+        'num_layers': 3,
+        'grid_size':  32,
+        'spline_order':  3,
+        'scale_noise':  0.54,
+        'scale_base':  0.61,
+        'scale_spline':  0.68
+        }
+        model = KAN_Model(4, params)
+        print('training model')
+    elif model_type == 'conv_kan':
+        params = {
+        'num_layers': 3,
+        'padding': 1,
+        'kernel_size': 3,
+        'stride': 1
+        }   
+        model = ConvKAN_Model(4, params)
     model_state = model.load_state_dict(torch.load(state_dict_path, map_location='cpu'))
 
     return model_state
@@ -185,8 +284,15 @@ def update_json_with_key(filename, new_data):
     except FileNotFoundError:
         data = []
 
-    # Update the data under the specified key
-    data.append(new_data)
+    added = False
+    for i, dic in enumerate(data):
+        if dic['model_name'] == new_data['model_name']:
+            data[i] = new_data
+            added = True
+        
+    if not added:
+        # Update the data under the specified key
+        data.append(new_data)
 
     # Save updated data back to JSON
     with open(filename, 'w') as f:
